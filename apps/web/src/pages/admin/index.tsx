@@ -4,9 +4,7 @@ import axios from 'axios'
 export default function AdminDashboard() {
   const [teachers, setTeachers] = useState<any[]>([])
   useEffect(() => {
-    const t = localStorage.getItem('esms_token')
-    if (!t) return
-    axios.get((process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000') + '/api/admin/teachers', { headers: { Authorization: `Bearer ${t}` } })
+    axios.get((process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000') + '/api/admin/teachers', { withCredentials: true })
       .then(r => setTeachers(r.data))
       .catch(() => setTeachers([]))
   }, [])

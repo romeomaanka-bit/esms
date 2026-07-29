@@ -12,10 +12,12 @@ export default function LoginPage() {
     e.preventDefault()
     setError('')
     try {
-      const res = await axios.post((process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000') + '/api/auth/login', { username, password })
-      const { token, user } = res.data
-      localStorage.setItem('esms_token', token)
-      localStorage.setItem('esms_user', JSON.stringify(user))
+      const res = await axios.post(
+        (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000') + '/api/auth/login',
+        { username, password },
+        { withCredentials: true }
+      )
+      const { user } = res.data
       if (user.role === 'ADMIN') router.push('/admin')
       else if (user.role === 'TEACHER') router.push('/teacher')
       else router.push('/student')

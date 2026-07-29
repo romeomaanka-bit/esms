@@ -4,9 +4,7 @@ import axios from 'axios'
 export default function StudentDashboard() {
   const [profile, setProfile] = useState<any>(null)
   useEffect(() => {
-    const t = localStorage.getItem('esms_token')
-    if (!t) return
-    axios.get((process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000') + '/api/student/profile', { headers: { Authorization: `Bearer ${t}` } })
+    axios.get((process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000') + '/api/student/profile', { withCredentials: true })
       .then(r => setProfile(r.data))
       .catch(() => setProfile(null))
   }, [])

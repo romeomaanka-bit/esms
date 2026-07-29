@@ -9,8 +9,7 @@ export interface AuthRequest extends Request {
 }
 
 export async function authenticateToken(req: AuthRequest, res: Response, next: NextFunction) {
-  const authHeader = req.headers['authorization']
-  const token = authHeader && authHeader.split(' ')[1]
+  const token = req.cookies?.esms_at as string | undefined
   if (!token) return res.status(401).json({ error: 'Missing token' })
 
   try {
