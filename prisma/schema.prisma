@@ -1,0 +1,188 @@
+// Prisma schema for Darul-karim School Management System (DSMS)
+// Generated initial schema mapping core domain entities: Users, Teachers, Students,
+// Classes, Subjects, Timetables, Exams, Results, Attendance, Complaints, Fees,
+// Activity logs, and Sessions.
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role { ADMIN TEACHER STUDENT }
+enum AttendanceStatus { PRESENT ABSENT LATE EXCUSED }
+
+model User {
+  id           String    @id @default(cuid())
+  username     String    @unique
+  email        String?   @unique
+  passwordHash String
+  role         Role
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  profile      Profile?
+  teacher      Teacher?
+  student      Student?
+  sessions     Session[]
+  activities   ActivityLog[]
+}
+
+model Profile {
+  id        String  @id @default(cuid())
+  user      User    @relation(fields: [userId], references: [id])
+  userId    String  @unique
+  fullName  String
+  photoUrl  String?
+  phone     String?
+  address   String?
+}
+
+model Teacher {
+  id         String   @id @default(cuid())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String   @unique
+  subjects   Subject[] @relation("TeacherSubjects")
+  classes    Class[]   @relation("TeacherClasses")
+  createdAt  DateTime @default(now())
+}
+
+model Student {
+  id          String   @id @default(cuid())
+  studentId   String   @unique
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String   @unique
+  class       Class?   @relation(fields: [classId], references: [id])
+  classId     String?
+  section     String?
+  rollNumber  Int?
+  createdAt   DateTime @default(now())
+  attendances Attendance[]
+  results     Result[]
+  complaints  Complaint[]
+}
+
+model Class {
+  id         String   @id @default(cuid())
+  name       String
+  section    String?
+  subjects   Subject[]
+  teachers   Teacher[] @relation("TeacherClasses")
+  students   Student[]
+  timetables Timetable[]
+}
+
+model Subject {
+  id        String   @id @default(cuid())
+  name      String
+  code      String?  @unique
+  classes   Class[]
+  teachers  Teacher[] @relation("TeacherSubjects")
+  exams     ExamSubject[]
+}
+
+model Timetable {
+  id        String   @id @default(cuid())
+  class     Class    @relation(fields: [classId], references: [id])
+  classId   String
+  day       String
+  startTime DateTime
+  endTime   DateTime
+  subject   Subject? @relation(fields: [subjectId], references: [id])
+  subjectId String?
+  teacher   Teacher? @relation(fields: [teacherId], references: [id])
+  teacherId String?
+  published Boolean  @default(false)
+}
+
+model Exam {
+  id          String   @id @default(cuid())
+  title       String
+  startDate   DateTime
+  endDate     DateTime?
+  published   Boolean  @default(false)
+  examSubjects ExamSubject[]
+}
+
+model ExamSubject {
+  id        String   @id @default(cuid())
+  exam      Exam     @relation(fields: [examId], references: [id])
+  examId    String
+  subject   Subject  @relation(fields: [subjectId], references: [id])
+  subjectId String
+  schedule  DateTime
+  room      String?
+}
+
+model Result {
+  id         String   @id @default(cuid())
+  student    Student  @relation(fields: [studentId], references: [id])
+  studentId  String
+  exam       Exam     @relation(fields: [examId], references: [id])
+  examId     String
+  subject    Subject  @relation(fields: [subjectId], references: [id])
+  subjectId  String
+  marks      Float
+  grade      String?
+  approved   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Attendance {
+  id         String          @id @default(cuid())
+  student    Student         @relation(fields: [studentId], references: [id])
+  studentId  String
+  class      Class?          @relation(fields: [classId], references: [id])
+  classId    String?
+  date       DateTime
+  status     AttendanceStatus
+  recordedBy Teacher?        @relation(fields: [teacherId], references: [id])
+  teacherId  String?
+  createdAt  DateTime        @default(now())
+}
+
+model Complaint {
+  id          String   @id @default(cuid())
+  student     Student  @relation(fields: [studentId], references: [id])
+  studentId   String
+  subject     String
+  description String
+  attachment  String?
+  status      String   @default("open")
+  response    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Fee {
+  id          String   @id @default(cuid())
+  student     Student  @relation(fields: [studentId], references: [id])
+  studentId   String
+  amount      Float
+  dueDate     DateTime
+  paid        Boolean  @default(false)
+  paidAt      DateTime?
+  createdAt   DateTime @default(now())
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  action    String
+  meta      Json?
+  ip        String?
+  createdAt DateTime @default(now())
+}
+
+model Session {
+  id         String   @id @default(cuid())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String
+  token      String
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime
+}
